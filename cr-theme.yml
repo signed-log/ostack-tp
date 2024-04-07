@@ -1,0 +1,5 @@
+extends: default
+heading:
+  min-height-after: auto
+page:
+  size: A4

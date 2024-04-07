@@ -3,17 +3,23 @@
 set -o pipefail
 
 export DB_IP="<PUT FLOATING HERE>"
+export DB_PORT="3306"
 export DEBIAN_FRONTEND=noninteractive
 
-# Install Apache
+# Update the package list
 sudo apt-get update
-sudo apt-get upgrade -y
 
-sudo apt-get install -y ca-certificates apt-transport-https software-properties-common lsb-release
+# Install dependencies
+sudo apt-get install -y ca-certificates \
+  apt-transport-https \
+  software-properties-common \
+  lsb-release
 
+# Use the Ondřej Surý repository to install the latest versions of Apache and PHP
 sudo add-apt-repository ppa:ondrej/php -y
-sudo add-apt-repostiory ppa:ondrej/apache2 -y
+sudo add-apt-repository ppa:ondrej/apache2 -y
 
+# Install Apache and PHP including the required modules
 sudo apt-get install -y apache2 \
   php8.3-common \
   php8.3-mysql \
@@ -32,15 +38,12 @@ sudo apt-get install -y apache2 \
 
 
 sudo systemctl enable --now apache2
-sudo systemctl restart apache2
-
-sudo apache2ctl configtest
-sudo systemctl restart apache2
 
 sudo mkdir -p /srv/www
 sudo chown www-data: /srv/www
 curl https://wordpress.org/latest.tar.gz | sudo -u www-data tar zx -C /srv/www
 
+# Create the Apache configuration file for WordPress
 cat <<EOF > /etc/apache2/sites-available/wordpress.conf
 <VirtualHost *:80>
     DocumentRoot /srv/www/wordpress
@@ -57,12 +60,17 @@ cat <<EOF > /etc/apache2/sites-available/wordpress.conf
 </VirtualHost>
 EOF
 sudo a2ensite wordpress
+# Remove default website
+sudo a2dissite 000-default
+# Enable rewrite module
 sudo a2enmod rewrite
 
 sudo -u www-data cp /srv/www/wordpress/wp-config-sample.php /srv/www/wordpress/wp-config.php
 sudo -u www-data sed -i 's/database_name_here/wordpress/' /srv/www/wordpress/wp-config.php
 sudo -u www-data sed -i 's/username_here/wordpressuser/' /srv/www/wordpress/wp-config.php
 sudo -u www-data sed -i 's/password_here/b0njour/' /srv/www/wordpress/wp-config.php
-sudo -u www-data sed -i 's/localhost/'"$DB_IP"'/' /srv/www/wordpress/wp-config.php
+sudo -u www-data sed -i 's/localhost/'"$DB_IP:$DB_PORT"'/' /srv/www/wordpress/wp-config.php
+
+# Needs setting up the secret keys in the wp-config.php file using https://api.wordpress.org/secret-key/1.1/salt/
 
 sudo systemctl restart apache2
