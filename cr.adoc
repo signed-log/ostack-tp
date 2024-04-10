@@ -182,7 +182,7 @@ openstack floating ip delete $FLOATING_IP
 
 === Quel est l'utilisateur par défaut de l'image ubuntu ?
 
-`+ubuntu+`
+`+ubuntu+`, mais on peut aussi utiliser la solution de provisionnement `+cloud-init+` pour créer un utilisateur.
 
 === Import de l'image Ubuntu
 
@@ -270,6 +270,7 @@ openstack server create --flavor ds1G \
   web
 # On attend que l'instance soit provisionnée
 sleep 10
+# Associer l'IP flottante à l'instance
 openstack server add floating ip web $IP1
 ----
 
@@ -295,6 +296,7 @@ ssh ubuntu@$IP2 -i ~/.ssh/id_ed25519
 # On récupère le script de configuration dans le dépôt
 git clone https://github.com/signed-log/ostack-tp.git
 cd ostack-tp/scripts
+# Script de configuration de la base de données dans scripts/
 sudo ./db.sh
 ----
 

@@ -46,4 +46,5 @@ EOF
 sudo mysql < "$TEMP_SQL_FILE" 
 rm "$TEMP_SQL_FILE"
 
-# BIND
+# Allow remote connections to the database
+printf "[main]\n bind-address = 0.0.0.0" | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf
